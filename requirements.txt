@@ -1,0 +1,9 @@
+streamlit
+llama-index>=0.10.0
+llama-index-embeddings-fastembed
+llama-index-llms-huggingface
+fastembed
+transformers
+torch
+sentencepiece
+accelerate
