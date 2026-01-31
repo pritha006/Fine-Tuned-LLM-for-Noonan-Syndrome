@@ -1,9 +1,11 @@
 streamlit
-llama-index
+llama-index==0.10.37
 llama-index-embeddings-fastembed
 fastembed
-torch==2.1.0
-transformers
-sentencepiece
+sentence-transformers
+numpy
+scikit-learn
+
+
 
 
