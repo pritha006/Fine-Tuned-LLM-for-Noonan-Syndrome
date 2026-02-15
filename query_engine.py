@@ -1,5 +1,4 @@
 from llama_index.core import StorageContext, load_index_from_storage, Settings
-from llama_index.llms.huggingface import HuggingFaceLLM
 
 def load_query_engine():
 
@@ -28,3 +27,4 @@ def load_query_engine():
     )
 
     return query_engine
+
