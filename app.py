@@ -1,33 +1,52 @@
-from llama_index.core import StorageContext, load_index_from_storage, Settings
-from llama_index.embeddings.fastembed import FastEmbedEmbedding
-from llama_index.llms.huggingface import HuggingFaceLLM
+import os
+import streamlit as st
 
-def load_query_engine():
-    # ✅ MUST be set FIRST
-    embed_model = FastEmbedEmbedding(
-        model_name="BAAI/bge-small-en-v1.5"
-    )
-    Settings.embed_model = embed_model
+from llama_index.core import (
+    SimpleDirectoryReader,
+    VectorStoreIndex,
+    Settings,
+)
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
-    # ✅ LLM
-    llm = HuggingFaceLLM(
-        model_name="mistralai/Mistral-7B-Instruct-v0.2",
-        tokenizer_name="mistralai/Mistral-7B-Instruct-v0.2",
-        context_window=4096,
-        max_new_tokens=512,
-        generate_kwargs={
-            "temperature": 0.3,
-            "top_p": 0.9
-        },
-        device_map="auto",
-    )
-    Settings.llm = llm
+# ---------------- PATHS ----------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, "data")
 
-    # ✅ Load stored index
-    storage_context = StorageContext.from_defaults(
-        persist_dir="storage"
-    )
+# ---------------- EMBEDDINGS (LOCAL) ----------------
+Settings.embed_model = HuggingFaceEmbedding(
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
+)
 
-    index = load_index_from_storage(storage_context)
+# IMPORTANT: Do NOT set Settings.llm at all
+# This avoids OpenAI completely
 
-    return index.as_query_engine(similarity_top_k=3)
+# ---------------- LOAD DOCUMENTS ----------------
+documents = SimpleDirectoryReader(
+    input_dir=DATA_DIR,
+    required_exts=[".txt"]
+).load_data()
+
+index = VectorStoreIndex.from_documents(documents)
+
+query_engine = index.as_query_engine(
+    similarity_top_k=3
+)
+
+# ---------------- STREAMLIT UI ----------------
+st.set_page_config(
+    page_title="Noonan Syndrome Assistant",
+    layout="centered"
+)
+
+st.title("🧬 Noonan Syndrome Medical Assistant")
+st.write("Ask questions based on the Noonan Syndrome knowledge base.")
+
+query = st.text_input("Enter your question")
+
+if query:
+    with st.spinner("Searching medical knowledge..."):
+        response = query_engine.query(query)
+
+    st.subheader("Answer")
+    st.write(response.response)
+
