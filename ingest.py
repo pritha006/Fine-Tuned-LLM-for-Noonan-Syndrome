@@ -1,26 +1,36 @@
-import pandas as pd
-from llama_index.core import Document, VectorStoreIndex
+from llama_index.core import VectorStoreIndex, Document, Settings
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
-from llama_index.core import Settings
+import pandas as pd
+import os
 
-def build_index():
-    df = pd.read_csv("llmdataset.csv")
+# ---------- Embedding ----------
+Settings.embed_model = FastEmbedEmbedding(
+    model_name="BAAI/bge-small-en-v1.5"
+)
 
-    documents = []
-    for _, row in df.iterrows():
-        text = " ".join([str(v) for v in row.values])
-        documents.append(Document(text=text))
+# ---------- Load CSV ----------
+df = pd.read_csv("llmdataset.csv")
 
-    embed_model = FastEmbedEmbedding(
-        model_name="BAAI/bge-small-en-v1.5"
-    )
+# ---------- Clean column names ----------
+df.columns = df.columns.str.strip()
 
-    Settings.embed_model = embed_model
+print("✅ Cleaned Columns:", df.columns.tolist())
 
-    index = VectorStoreIndex.from_documents(documents)
-    index.storage_context.persist(persist_dir="storage")
+documents = []
 
-    print("✅ Index created successfully")
+for _, row in df.iterrows():
+    text = f"""
+    Question: {row['Question']}
+    Correct Medical Answer: {row['Golden Answer']}
+    """
+    documents.append(Document(text=text))
 
-if __name__ == "__main__":
-    build_index()
+# ---------- Create index ----------
+index = VectorStoreIndex.from_documents(documents)
+
+# ---------- Persist ----------
+index.storage_context.persist(persist_dir="storage")
+
+print("✅ Noonan Syndrome index created successfully")
+
+
