@@ -1,12 +1,9 @@
-streamlit
-llama-index>=0.10.0
+streamlit==1.32.0
+llama-index==0.10.20
 llama-index-embeddings-fastembed
-llama-index-llms-huggingface
 fastembed
-transformers
 torch
-sentencepiece
-accelerate
+
 
 
 
